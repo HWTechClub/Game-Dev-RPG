@@ -31,8 +31,8 @@ public class PlayerMovement : MonoBehaviour
 
     [SerializeField] Vector3 glideVector;
 
-    [SerializeField] float maxGlidingAcc_H;
-    [SerializeField] float maxGlidingAcc_V;
+    [SerializeField] float maxGlidingAcceleration_H;
+    [SerializeField] float maxGlidingAcceleration_V;
     [SerializeField] float maxGlideHorizontal;
     [SerializeField] float maxGlideVertical;
     [SerializeField] float updraftMagnitude;
@@ -62,6 +62,8 @@ public class PlayerMovement : MonoBehaviour
     void Start()
     {
         SetStats();
+        
+
     }
 
     void SetStats ()
@@ -73,6 +75,9 @@ public class PlayerMovement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (Input.GetKeyDown(KeyCode.R))
+            charCont.Move(-transform.position);
+
         switch (moveState)
         {
             case MoveState.Default:
@@ -192,8 +197,8 @@ public class PlayerMovement : MonoBehaviour
         desiredVelocity = glideAngle.normalized * maxGlideHorizontal * (Input.GetAxisRaw("Vertical") < 0 ? 0.2f : 1);
         desiredVelocity.y = maxGlideVertical * (Input.GetAxisRaw("Vertical") < 0 ? 5f : 1) + maxUpdraftSpeed * updraftMagnitude / 100;
 
-        float maxSpeedChangeHorizontal = maxGlidingAcc_H * Time.deltaTime;
-        float maxSpeedChangeVertical = maxGlidingAcc_V * Time.deltaTime;
+        float maxSpeedChangeHorizontal = maxGlidingAcceleration_H * Time.deltaTime;
+        float maxSpeedChangeVertical = maxGlidingAcceleration_V * Time.deltaTime;
 
 
         velocity.x = Mathf.MoveTowards(velocity.x, desiredVelocity.x, maxSpeedChangeHorizontal);
