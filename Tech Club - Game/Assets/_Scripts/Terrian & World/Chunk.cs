@@ -17,9 +17,13 @@ public class Chunk
 
     bool smoothTerrain = true;  //Turn this on for marching cubes interpolation
     float[,,] terrainMap;       //This is the 3D height map
+    float humidity;
+    float temperature;
+
+    GameObject terrainPrefab;
 
     //Chunk constructor
-    public Chunk (Vector3Int _position, Vector3[] offset, int octaves, float persistance, float lacunarity)
+    public Chunk(Vector3Int _position, Vector2[] offset, int octaves, float persistance, float lacunarity, float scale)
     {
         //Create the object and set it up.
         chunkObject = new GameObject();
@@ -27,7 +31,7 @@ public class Chunk
         chunkPosition = _position;
         chunkObject.transform.position = chunkPosition;
 
-        //Add the necessary componenets to it. THESE MIGHT BE INEFFICIENT.
+        //Add the necessary componenets to it.
         meshFilter = chunkObject.AddComponent<MeshFilter>();
         meshCollider = chunkObject.AddComponent<MeshCollider>();
         meshRenderer = chunkObject.AddComponent<MeshRenderer>();
@@ -35,13 +39,14 @@ public class Chunk
 
         chunkObject.layer = 8; //Set the layer to ground.
 
+
         //Create a terrain map and populate it 
         terrainMap = new float[MarchingCubesData.chunkWidth + 1, MarchingCubesData.chunkHeight + 1, MarchingCubesData.chunkWidth + 1];
-        PopulateTerrainMap(offset, octaves, persistance, lacunarity);
+        PopulateTerrainMap(offset, octaves, persistance, lacunarity, scale);
 
         CreateMeshData();
     }
-    
+
     void CreateMeshData() {
         ClearMesh();
 
@@ -59,27 +64,30 @@ public class Chunk
         UpdateMesh();
     }
 
+
+
     //Using noise, this function populates the terrain map. 
-    public void PopulateTerrainMap (Vector3[] offset, int octaves, float persistance, float lacunarity)
+    private void PopulateTerrainMap (Vector2[] offset, int octaves, float persistance, float lacunarity, float scale)
     {
+        if (scale < 0f)
+            scale = 0.01f;
+
         for (int x = 0; x < MarchingCubesData.chunkWidth + 1; x++)
         {
             for (int z = 0; z < MarchingCubesData.chunkWidth + 1; z++)
             {
-                //These two floats make the terrain generation more interesting by creating a difference between mountains and plains.
-                float regionalHeights = Mathf.PerlinNoise((x + chunkPosition.x + offset[0].x) / 1280, (z + chunkPosition.z + offset[0].z) / 1280);
-                float heightPowered = Mathf.PerlinNoise((x + chunkPosition.x + offset[0].x) / 160, (z + chunkPosition.z + offset[0].z) / 160) * 3;
-                
+                float thisHeight = Noise.GetTerrainHeight(x + chunkPosition.x, 0, z + chunkPosition.z, offset, octaves, persistance, lacunarity, scale);
+
 
                 for (int y = 0; y < MarchingCubesData.chunkHeight + 1; y++)
                 {
-                    float thisHeight = Noise.GetTerrainHeight(x + chunkPosition.x, y + chunkPosition.y, z + chunkPosition.z, offset, octaves, persistance, lacunarity, regionalHeights, heightPowered);
-
                     terrainMap[x, y, z] = (float)y - thisHeight;
                 }
             }
         }
+        
     }
+
 
     //Gets the configuration of the marching cubes combination
     int GetCubeConfiguration (float[] cube)

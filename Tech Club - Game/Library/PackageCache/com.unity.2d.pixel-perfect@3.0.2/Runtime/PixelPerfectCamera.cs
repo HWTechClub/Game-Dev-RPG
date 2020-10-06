@@ -181,7 +181,7 @@ namespace UnityEngine.U2D
 #endif
 
             PixelSnap();
-                
+
             if (m_Internal.pixelRect != Rect.zero)
                 m_Camera.pixelRect = m_Internal.pixelRect;
             else

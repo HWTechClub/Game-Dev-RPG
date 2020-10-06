@@ -6,9 +6,8 @@ public static class Noise
 {
 
     //This creates a terrain height at a given location using Perlin noise.
-    public static float GetTerrainHeight(int x, int y, int z, Vector3[] octaveOffsets, int octaves, float persistance, float lacunarity, float regionalHeights, float heightPowered)
+    public static float GetTerrainHeight(int x, int y, int z, Vector2[] octaveOffsets, int octaves, float persistance, float lacunarity, float scale)
     {
-
         float perlinValue = 0;
 
         float amplitude = 1;
@@ -17,23 +16,62 @@ public static class Noise
         //This loops over each octave
         for (int i = 0; i < octaves; i++)
         {
-            perlinValue += Mathf.PerlinNoise((float)(x * frequency + octaveOffsets[0].x) / 128, (float)(z * frequency + octaveOffsets[0].y) / 128) * amplitude;
+            perlinValue += (Mathf.PerlinNoise((float)(x * frequency + octaveOffsets[i].x) / scale, (float)(z * frequency + octaveOffsets[i].y) / scale) * amplitude);
 
             amplitude *= persistance;   //This modifies how effective the next octave will be
             frequency *= lacunarity;    //This modifies the scale of the next octave
         }
 
-        //Multiply it by regional heights and power it by heightsPowered for more interesting terrain
-        perlinValue *= regionalHeights;
+        perlinValue = Mathf.InverseLerp(0, 1, perlinValue);
+        perlinValue = Mathf.Clamp(perlinValue, 0.5f, 1);
 
-        perlinValue = Mathf.Pow(perlinValue, heightPowered);
+        return (float)(MarchingCubesData.chunkHeight * perlinValue);
+    }
 
-        //TO DO: Make interesting terrain using 3d noise, currently its too messy and slow to run.
-        //perlinValue *= 1 - Perlin3D((float)(x * frequency + octaveOffsets[0].x) / 256, (float)(y * frequency + octaveOffsets[0].y) / 256, (float)(z * frequency + octaveOffsets[0].z) / 256);
+    //Generates a noise map based on given parameters
+    public static float[,] GenerateNoiseMap(int width, int octaves, float persistance, float lacunarity, float scale, Vector2[] offset, Vector2 location)
+    {
+        //Create a map that will hold our values
+        float[,] noiseMap = new float[width, width];
 
-        //TO DO: Inverse lerp the perlin value so its between 0 and 1
+        //If scale is less than 0, set it to a really low number. Can't divide by zero.
+        if (scale < 0f)
+            scale = 0.01f;
 
-        return (float)MarchingCubesData.heightRange * perlinValue + MarchingCubesData.seaLevel;
+        //Loop through both axes.
+        for (int x = 0; x < width; x++)
+        {
+            for (int z = 0; z < width; z++)
+            {
+
+                float noise = 0;
+                float amplitude = 1;
+                float frequency = 1;
+
+                //For each octave, add to the noise height.
+                for (int i = 0; i < octaves; i++)
+                {
+                    noise += (Mathf.PerlinNoise((float)((x + location.x - width/2) * frequency + offset[0].x) / scale, (float)((z + location.y - width/2) * frequency + offset[0].y) / scale) * amplitude);
+
+                    amplitude *= persistance;
+                    frequency *= lacunarity;
+                }
+
+                noiseMap[x, z] = noise;
+            }
+        }
+
+
+        //Then we inverse lerp to keep all values between 0 to 1.
+        for (int x = 0; x < width; x++)
+        {
+            for (int z = 0; z < width; z++)
+            {
+                noiseMap[x, z] = Mathf.InverseLerp(0, 1, noiseMap[x, z]);
+            }
+        }
+
+        return noiseMap;
     }
 
     //This is a easy DIY 3d Perlin function I stole from stackoverflow or something

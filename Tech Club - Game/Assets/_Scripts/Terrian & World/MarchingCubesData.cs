@@ -8,10 +8,7 @@ public static class MarchingCubesData
 {
     public static readonly float terrainSurface = 0.5f;
     public static readonly int chunkWidth = 16;
-    public static readonly int chunkHeight = 310;
-
-    public static readonly float seaLevel = 80;
-    public static readonly float heightRange = 200;
+    public static readonly int chunkHeight = 500;
 
 
     //Don't touch these.
