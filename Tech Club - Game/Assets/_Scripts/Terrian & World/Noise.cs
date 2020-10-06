@@ -6,7 +6,7 @@ public static class Noise
 {
 
     //This creates a terrain height at a given location using Perlin noise.
-    public static float GetTerrainHeight(int x, int y, int z, Vector2[] octaveOffsets, int octaves, float persistance, float lacunarity, float scale)
+    public static float GetTerrainHeight(int x, int z, Vector2[] octaveOffsets, int octaves, float persistance, float lacunarity, float scale)
     {
         float perlinValue = 0;
 
@@ -25,7 +25,7 @@ public static class Noise
         perlinValue = Mathf.InverseLerp(0, 1, perlinValue);
         perlinValue = Mathf.Clamp(perlinValue, 0.5f, 1);
 
-        return (float)(MarchingCubesData.chunkHeight * perlinValue);
+        return (float)(MarchingCubesData.heightRange * perlinValue + 20);
     }
 
     //Generates a noise map based on given parameters

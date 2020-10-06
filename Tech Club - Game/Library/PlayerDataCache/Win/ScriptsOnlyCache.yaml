@@ -2,6 +2,7 @@ ScriptsOnlyBuild:
   usedScripts:
     Assembly-CSharp.dll:
     - CameraController
+    - MapRenderer
     - PlayerMovement
     - PlayerUI
     - TerrainGenerator
@@ -60,33 +61,35 @@ ScriptsOnlyBuild:
     - Class: 108
       Script: {instanceID: 0}
     - Class: 114
-      Script: {instanceID: 11838}
+      Script: {instanceID: 11848}
     - Class: 114
-      Script: {instanceID: 12250}
+      Script: {instanceID: 12360}
     - Class: 114
-      Script: {instanceID: 12536}
+      Script: {instanceID: 12712}
     - Class: 114
-      Script: {instanceID: 13012}
+      Script: {instanceID: 13318}
     - Class: 114
-      Script: {instanceID: 13554}
+      Script: {instanceID: 14004}
     - Class: 114
-      Script: {instanceID: 13720}
+      Script: {instanceID: 14208}
     - Class: 114
-      Script: {instanceID: 13744}
+      Script: {instanceID: 14234}
     - Class: 114
-      Script: {instanceID: 14112}
+      Script: {instanceID: 14676}
     - Class: 114
-      Script: {instanceID: 14134}
+      Script: {instanceID: 14702}
     - Class: 114
-      Script: {instanceID: 14178}
+      Script: {instanceID: 14764}
     - Class: 114
-      Script: {instanceID: 14244}
+      Script: {instanceID: 14838}
     - Class: 114
-      Script: {instanceID: 14486}
+      Script: {instanceID: 15132}
     - Class: 114
-      Script: {instanceID: 14598}
+      Script: {instanceID: 15266}
     - Class: 114
-      Script: {instanceID: 14874}
+      Script: {instanceID: 15484}
+    - Class: 114
+      Script: {instanceID: 15612}
     - Class: 115
       Script: {instanceID: 0}
     - Class: 128
@@ -630,7 +633,7 @@ ScriptsOnlyBuild:
     className: Button
   - hash:
       serializedVersion: 2
-      Hash: 96bc044f5bc3552638679aef1376621a
+      Hash: 17c0af851fdf14994df04f5dbacfc996
     assemblyName: Assembly-CSharp.dll
     namespaceName: 
     className: CameraController
@@ -744,6 +747,12 @@ ScriptsOnlyBuild:
     className: ActivationPlayableAsset
   - hash:
       serializedVersion: 2
+      Hash: 596b09847a273240788adff7ebbdeb6c
+    assemblyName: Assembly-CSharp.dll
+    namespaceName: 
+    className: MapGenerator
+  - hash:
+      serializedVersion: 2
       Hash: 18c222bef9ae745ce69ddde9b74337ca
     assemblyName: UnityEngine.UI.dll
     namespaceName: UnityEngine.EventSystems
@@ -768,7 +777,7 @@ ScriptsOnlyBuild:
     className: CinemachineVirtualCamera
   - hash:
       serializedVersion: 2
-      Hash: a25e9cad0c632c5d57c3bdc84bd5b938
+      Hash: 508d058e095fe6d8e56c77ee29246b7a
     assemblyName: Assembly-CSharp.dll
     namespaceName: 
     className: TerrainGenerator
@@ -858,7 +867,7 @@ ScriptsOnlyBuild:
     className: CinemachineInputProvider
   - hash:
       serializedVersion: 2
-      Hash: ff119edf8410b2b2f72a60c1245b85f5
+      Hash: e6bf52b58f05d39440d8c940ffc3a2a4
     assemblyName: Assembly-CSharp.dll
     namespaceName: 
     className: MapRenderer
@@ -898,6 +907,18 @@ ScriptsOnlyBuild:
     assemblyName: Unity.Polybrush.dll
     namespaceName: UnityEngine.Polybrush
     className: PolybrushMesh
+  - hash:
+      serializedVersion: 2
+      Hash: 71bb6a6b6c8f052f948db64c7dd3ca4f
+    assemblyName: Unity.PerformanceTesting.dll
+    namespaceName: Unity.PerformanceTesting.Measurements
+    className: ProfilerMarkerMeasurement
+  - hash:
+      serializedVersion: 2
+      Hash: 71bb6a6b6c8f052f948db64c7dd3ca4f
+    assemblyName: Assembly-CSharp.dll
+    namespaceName: 
+    className: MapGeneratorEditor
   - hash:
       serializedVersion: 2
       Hash: d5630f96bd5a6a6eed7e1754c3fb8703

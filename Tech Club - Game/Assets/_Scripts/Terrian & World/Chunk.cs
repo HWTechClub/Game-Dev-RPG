@@ -16,7 +16,7 @@ public class Chunk
     List<int> triangles = new List<int>();          //The triangles of the mesh
 
     bool smoothTerrain = true;  //Turn this on for marching cubes interpolation
-    float[,,] terrainMap;       //This is the 3D height map
+    float[,] terrainMap;       //This is the 2D height map
     float humidity;
     float temperature;
 
@@ -41,7 +41,7 @@ public class Chunk
 
 
         //Create a terrain map and populate it 
-        terrainMap = new float[MarchingCubesData.chunkWidth + 1, MarchingCubesData.chunkHeight + 1, MarchingCubesData.chunkWidth + 1];
+        terrainMap = new float[MarchingCubesData.chunkWidth + 1, MarchingCubesData.chunkWidth + 1];
         PopulateTerrainMap(offset, octaves, persistance, lacunarity, scale);
 
         CreateMeshData();
@@ -52,15 +52,15 @@ public class Chunk
 
         for (int x = 0; x < MarchingCubesData.chunkWidth; x++)
         {
-            for (int y = 0; y < MarchingCubesData.chunkHeight; y++)
+            for (int z = 0; z < MarchingCubesData.chunkWidth; z++)
             {
-                for (int z = 0; z < MarchingCubesData.chunkWidth; z++)
+                for (int y = 0; y < MarchingCubesData.chunkHeight; y++)
                 {
                     MarchCube(new Vector3Int(x, y, z));
                 }
             }
-        }
 
+        }
         UpdateMesh();
     }
 
@@ -76,16 +76,13 @@ public class Chunk
         {
             for (int z = 0; z < MarchingCubesData.chunkWidth + 1; z++)
             {
-                float thisHeight = Noise.GetTerrainHeight(x + chunkPosition.x, 0, z + chunkPosition.z, offset, octaves, persistance, lacunarity, scale);
+                float thisHeight = Noise.GetTerrainHeight(x + chunkPosition.x, z + chunkPosition.z, offset, octaves, persistance, lacunarity, scale);
 
+                terrainMap[x, z] = thisHeight;
 
-                for (int y = 0; y < MarchingCubesData.chunkHeight + 1; y++)
-                {
-                    terrainMap[x, y, z] = (float)y - thisHeight;
-                }
             }
         }
-        
+
     }
 
 
@@ -159,12 +156,14 @@ public class Chunk
                 edgeIndex++;
             }
         }
+
+
     }
 
     //This just samples from the Terrain map
     float SampleTerrain (Vector3Int point)
     {
-        return terrainMap[point.x, point.y, point.z];
+        return point.y - terrainMap[point.x, point.z];
     }
 
     void ClearMesh()

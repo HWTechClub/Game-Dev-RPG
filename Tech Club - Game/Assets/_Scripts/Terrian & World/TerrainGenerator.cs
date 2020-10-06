@@ -116,7 +116,7 @@ public class TerrainGenerator : MonoBehaviour
                 else
                 {
                     //Create new chunk/ TO DO: instead of creating a new chunk, take the furthest chunk and change it.
-                    GenerateMap (new Vector2 (currentChunkCoordX, currentChunkCoordZ));
+                    //GenerateMap (new Vector2 (currentChunkCoordX, currentChunkCoordZ));
 
                     CreateNewChunks(viewedChunkCOord);
                     return;

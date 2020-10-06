@@ -56,7 +56,7 @@ public class MapRenderer : MonoBehaviour
                 {
                     for (int x = 0; x < width; x++)
                     {
-                        if (heightMap[x, y] > 0.4f)
+                        if (heightMap[x, y] > 0.5f)
                             colorMap[y * width + x] = humidityColor.Evaluate(humidMap[x, y]);
                         else
                             colorMap[y * width + x] = Color.grey;
@@ -71,7 +71,7 @@ public class MapRenderer : MonoBehaviour
                 {
                     for (int x = 0; x < width; x++)
                     {
-                        if (heightMap[x, y] > 0.4f)
+                        if (heightMap[x, y] > 0.5f)
                             colorMap[y * width + x] = temperatureColor.Evaluate(tempMap[x, y]);
                         else
                             colorMap[y * width + x] = Color.grey;
@@ -86,7 +86,7 @@ public class MapRenderer : MonoBehaviour
                 {
                     for (int x = 0; x < width; x++)
                     {
-                        if (heightMap[x, y] < 0.4f)
+                        if (heightMap[x, y] < 0.51f)
                             colorMap[y * width + x] = heightColor.Evaluate(heightMap[x, y]);
                         else
                         {
