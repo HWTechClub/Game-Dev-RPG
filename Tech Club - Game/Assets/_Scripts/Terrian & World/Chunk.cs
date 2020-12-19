@@ -19,11 +19,9 @@ public class Chunk
     float[,] terrainMap;       //This is the 2D height map
     float humidity;
     float temperature;
-
-    GameObject terrainPrefab;
-
+    
     //Chunk constructor
-    public Chunk(Vector3Int _position, Vector2[] offset, int octaves, float persistance, float lacunarity, float scale)
+    public Chunk(Vector3Int _position, Vector2[] offset, int octaves, float persistance, float lacunarity, float scale, TerrainGenerator tg)
     {
         //Create the object and set it up.
         chunkObject = new GameObject();
@@ -42,7 +40,7 @@ public class Chunk
 
         //Create a terrain map and populate it 
         terrainMap = new float[MarchingCubesData.chunkWidth + 1, MarchingCubesData.chunkWidth + 1];
-        PopulateTerrainMap(offset, octaves, persistance, lacunarity, scale);
+        PopulateTerrainMap(offset, octaves, persistance, lacunarity, scale, tg);
 
         CreateMeshData();
     }
@@ -67,7 +65,7 @@ public class Chunk
 
 
     //Using noise, this function populates the terrain map. 
-    private void PopulateTerrainMap (Vector2[] offset, int octaves, float persistance, float lacunarity, float scale)
+    private void PopulateTerrainMap (Vector2[] offset, int octaves, float persistance, float lacunarity, float scale, TerrainGenerator tg)
     {
         if (scale < 0f)
             scale = 0.01f;
@@ -76,9 +74,16 @@ public class Chunk
         {
             for (int z = 0; z < MarchingCubesData.chunkWidth + 1; z++)
             {
-                float thisHeight = Noise.GetTerrainHeight(x + chunkPosition.x, z + chunkPosition.z, offset, octaves, persistance, lacunarity, scale);
+                //float thisHeight = Noise.GetTerrainHeight(x + chunkPosition.x, z + chunkPosition.z, offset, octaves, persistance, lacunarity, scale);
 
-                terrainMap[x, z] = thisHeight;
+                //terrainMap[x, z] = thisHeight;
+                float thisHeight = 0;
+                Vector2 pos = new Vector2(x + chunkPosition.x, z + chunkPosition.z);
+
+                if (tg.WorldHeightMap.TryGetValue(pos, out thisHeight ))
+                    terrainMap[x, z] = MarchingCubesData.heightRange * thisHeight + 20;
+                else
+                    terrainMap[x, z] = 0;
 
             }
         }

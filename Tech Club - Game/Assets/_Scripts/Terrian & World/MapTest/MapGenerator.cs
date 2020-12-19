@@ -33,17 +33,27 @@ public class MapGenerator : MonoBehaviour
 
     [Space(10)]
 
+    //Magic
+    [SerializeField, Range(1, 10)] int magicOctaves;
+    [SerializeField, Range(0, 1)] float magicPersistance;
+    [SerializeField, Range(1, 10)] float magicLacunarity;
+    [SerializeField, Range(1, 5)] float magicScale;
+
+    [Space(10)]
+
     [SerializeField, Range(0, 1000)] int seed; 
 
     //Offsets based on seed
     private Vector2[] heightOffsets;
     private Vector2[] humidOffsets;
     private Vector2[] tempOffsets;
+    private Vector2[] magicOffsets;
 
     //Maps
     private float[,] heightMap;
     private float[,] humidityMap;
     private float[,] temperatureMap;
+    private float[,] magicMap;
 
 
     [Space(20)]
@@ -57,6 +67,7 @@ public class MapGenerator : MonoBehaviour
         heightOffsets = new Vector2[heightOctaves];
         humidOffsets = new Vector2[humOctaves];
         tempOffsets = new Vector2[tempOctaves];
+        magicOffsets = new Vector2[magicOctaves];
 
         //A unique offset for each map and each octave
 
@@ -79,6 +90,13 @@ public class MapGenerator : MonoBehaviour
             float offsetX = prng.Next(-100000, 100000);
             float offsetZ = prng.Next(-100000, 100000);
             tempOffsets[i] = new Vector2(offsetX, offsetZ);
+        }
+
+        for (int i = 0; i < magicOctaves; i++)
+        {
+            float offsetX = prng.Next(-100000, 100000);
+            float offsetZ = prng.Next(-100000, 100000);
+            magicOffsets[i] = new Vector2(offsetX, offsetZ);
         }
     }
 
@@ -137,9 +155,10 @@ public class MapGenerator : MonoBehaviour
         heightMap = GenerateNoiseMap(heightOctaves, heightPersistance, heightLacunarity, scale * heightScale, heightOffsets);
         humidityMap = GenerateNoiseMap(humOctaves, humPersistance, humLacunarity, scale * humScale, humidOffsets);
         temperatureMap = GenerateNoiseMap(tempOctaves, tempPersistance, tempLacunarity, scale * tempScale, tempOffsets);
+        magicMap = GenerateNoiseMap(magicOctaves, magicPersistance, magicLacunarity, scale * magicScale, magicOffsets);
 
 
-        mapRenderer.DrawNoiseMap(heightMap, humidityMap, temperatureMap);
+        mapRenderer.DrawNoiseMap(heightMap, humidityMap, temperatureMap, magicMap);
     }
     
 }

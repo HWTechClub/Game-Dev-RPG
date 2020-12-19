@@ -5,6 +5,7 @@ using UnityEngine;
 public class TerrainGenerator : MonoBehaviour
 {
     [SerializeField] int worldChunks = 10;
+    [SerializeField] int initialChunks = 10;
 
     [SerializeField] const float maxViewDst = 63;
     [SerializeField] Transform viewer;
@@ -84,14 +85,41 @@ public class TerrainGenerator : MonoBehaviour
     private void Start()
     {
         GenerateOffset();
+        GenerateTerrainMap();
         GenerateTerrain();
-        GenerateMap(Vector2.one * 50);
+        GenerateMap(Vector2.zero);
+    }
+
+    private void GenerateTerrainMap() {
+        float start = Time.realtimeSinceStartup;
+
+        if (scale < 0f)
+            scale = 0.01f;
+
+        WorldHeightMap = new Dictionary<Vector2, float>();
+
+        int worldWidthHalf = ((MarchingCubesData.chunkWidth + 1) * worldChunks)/2;
+
+        for (int x = -worldWidthHalf; x < worldWidthHalf; x++)
+        {
+            for (int z = -worldWidthHalf; z < worldWidthHalf; z++)
+            {
+                float thisHeight = Noise.GetTerrainHeight(x, z, heightOffsets, octaves, persistance, lacunarity, scale);
+
+                WorldHeightMap.Add(new Vector2(x, z), thisHeight);
+
+            }
+        }
+
+        print(Time.realtimeSinceStartup - start);
     }
 
     private void Update()
     {
         
         UpdateVisibleChunks();
+
+        GenerateMap(new Vector2((int)viewer.position.x, (int)viewer.position.z));
 
     }
 
@@ -116,7 +144,6 @@ public class TerrainGenerator : MonoBehaviour
                 else
                 {
                     //Create new chunk/ TO DO: instead of creating a new chunk, take the furthest chunk and change it.
-                    //GenerateMap (new Vector2 (currentChunkCoordX, currentChunkCoordZ));
 
                     CreateNewChunks(viewedChunkCOord);
                     return;
@@ -131,35 +158,41 @@ public class TerrainGenerator : MonoBehaviour
     public void GenerateTerrain ()
     {
         chunks.Clear();
-        
 
-        for (int x = 0; x < worldChunks; x++)
+        for (int x = 0; x < initialChunks; x++)
         {
-            for (int z = 0; z < worldChunks; z++)
+            for (int z = 0; z < initialChunks; z++)
             {
                 Vector3Int chunkPos = new Vector3Int(x * MarchingCubesData.chunkWidth, 0, z * MarchingCubesData.chunkWidth);
-                chunks.Add(chunkPos, new Chunk(chunkPos, heightOffsets, octaves, persistance, lacunarity, scale));
+                chunks.Add(chunkPos, new Chunk(chunkPos, heightOffsets, octaves, persistance, lacunarity, scale, this));
                 chunks[chunkPos].chunkObject.transform.SetParent(transform);
             }
         }
 
     }
 
-    public void GenerateMap (Vector2 location) {
-        float[,] heightMap;
-        float[,] humidityMap;
-        float[,] temperatureMap;
+    private void GenerateMap (Vector2 position)
+    {
+        float[,] heightMap = new float[mapWidth,mapWidth];
 
-        heightMap = Noise.GenerateNoiseMap(mapWidth, octaves, persistance, lacunarity, scale, heightOffsets, location);
-        humidityMap = Noise.GenerateNoiseMap(mapWidth, humOctaves, humPersistance, humLacunarity, scale * humScale, humidOffsets, location);
-        temperatureMap = Noise.GenerateNoiseMap(mapWidth, tempOctaves, tempPersistance, tempLacunarity, scale * tempScale, tempOffsets, location);
+        for (int x = 0; x < mapWidth; x++) {
+            for (int z = 0; z < mapWidth; z++)
+            {
+                float value = 0;
+                WorldHeightMap.TryGetValue(new Vector2((x - mapWidth / 2) * 10 + position.x, (z - mapWidth / 2) * 10 + position.y), out value);
 
-        mapRenderer.DrawNoiseMap(heightMap, humidityMap, temperatureMap);
+                heightMap[x, z] = value;
+            }
+        }
+        
+        mapRenderer.DrawNoiseMap(heightMap);
     }
 
     public void CreateNewChunks(Vector3Int position) {
         Vector3Int chunkPos = new Vector3Int(position.x, 0,position.z);
-        chunks.Add(chunkPos, new Chunk(chunkPos, heightOffsets, octaves, persistance, lacunarity, scale));
+        chunks.Add(chunkPos, new Chunk(chunkPos, heightOffsets, octaves, persistance, lacunarity, scale, this));
         chunks[chunkPos].chunkObject.transform.SetParent(transform);
     }
+
+    public Dictionary<Vector2,float> WorldHeightMap { get; private set; }
 }

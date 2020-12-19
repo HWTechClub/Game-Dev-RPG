@@ -10,8 +10,10 @@ public class MapRenderer : MonoBehaviour
     [SerializeField] Gradient heightColor;
     [SerializeField] Gradient humidityColor;
     [SerializeField] Gradient temperatureColor;
+    [SerializeField] Gradient magicColor;
 
     [SerializeField] Gradient[] biomeGradient;
+    [SerializeField] Gradient[] magicBiomeGradient;
 
     [SerializeField] TypeOfMap mapType;
 
@@ -23,11 +25,21 @@ public class MapRenderer : MonoBehaviour
         {Biome.Ice, Biome.Tundra, Biome.Plains,       Biome.Plains,              Biome.Desert,             Biome.Desert},
         {Biome.Ice, Biome.Tundra, Biome.Forest,       Biome.Forest,              Biome.Savanna,            Biome.Savanna},
         {Biome.Ice, Biome.Tundra, Biome.Taiga,        Biome.Forest,              Biome.Savanna,            Biome.Savanna},
-        {Biome.Ice, Biome.Tundra, Biome.Taiga,        Biome.SeasonalForest,      Biome.TropicalRainforest, Biome.TropicalRainforest},
-        {Biome.Ice, Biome.Tundra, Biome.Taiga,        Biome.TemperateRainforest, Biome.TropicalRainforest, Biome.TropicalRainforest}
+        {Biome.Ice, Biome.Tundra, Biome.Taiga,        Biome.SeasonalForest,      Biome.Jungle,             Biome.Jungle},
+        {Biome.Ice, Biome.Tundra, Biome.Taiga,        Biome.SeasonalForest,      Biome.Jungle,             Biome.Jungle}
     };
 
-    public void DrawNoiseMap (float[,] heightMap, float[,] humidMap, float [,] tempMap)
+    MagicBiome[,] MagicBiomeTable = new MagicBiome[6, 6]
+    {
+        {MagicBiome.DarkIce, MagicBiome.DarkIce,   MagicBiome.FaePlains,    MagicBiome.Lavalands,    MagicBiome.Lavalands,  MagicBiome.Lavalands},
+        {MagicBiome.DarkIce, MagicBiome.DarkIce,   MagicBiome.FaePlains,    MagicBiome.FaePlains,    MagicBiome.Lavalands,  MagicBiome.Lavalands},
+        {MagicBiome.DarkIce, MagicBiome.FaeTundra, MagicBiome.SpiritForest, MagicBiome.SpiritForest, MagicBiome.FireCanyon, MagicBiome.FireCanyon},
+        {MagicBiome.DarkIce, MagicBiome.FaeTundra, MagicBiome.SpiritForest, MagicBiome.FaeForest,    MagicBiome.FireCanyon, MagicBiome.FireCanyon},
+        {MagicBiome.DarkIce, MagicBiome.FaeTundra, MagicBiome.SpiritForest, MagicBiome.FaeForest,    MagicBiome.FaeForest,  MagicBiome.FaeForest},
+        {MagicBiome.DarkIce, MagicBiome.FaeTundra, MagicBiome.FaeForest,    MagicBiome.FaeForest,    MagicBiome.FaeForest,  MagicBiome.FaeForest}
+    };
+
+    public void DrawNoiseMap (float[,] heightMap, float[,] humidMap, float [,] tempMap, float [,] magicMap)
     {
         int width = heightMap.GetLength(0);
         int height = heightMap.GetLength(1);
@@ -80,6 +92,20 @@ public class MapRenderer : MonoBehaviour
 
 
                 break;
+            case TypeOfMap.Magic:
+
+                for (int y = 0; y < height; y++)
+                {
+                    for (int x = 0; x < width; x++)
+                    {
+                        if (heightMap[x, y] > 0.5f)
+                            colorMap[y * width + x] = magicColor.Evaluate(magicMap[x, y]);
+                        else
+                            colorMap[y * width + x] = Color.grey;
+                    }
+                }
+
+                break;
             case TypeOfMap.Biome:
 
                 for (int y = 0; y < height; y++)
@@ -90,16 +116,31 @@ public class MapRenderer : MonoBehaviour
                             colorMap[y * width + x] = heightColor.Evaluate(heightMap[x, y]);
                         else
                         {
-                            Biome biome = GetBiome(humidMap[x, y], tempMap[x, y]);
-
-                            if (biomeHighlight[(int)biome])
+                            if (magicMap[x, y] < 0.6f)
                             {
-                                Color color = biomeGradient[(int)biome].Evaluate(0) * heightColor.Evaluate(heightMap[x, y]);
+                                Biome biome = GetBiome(humidMap[x, y], tempMap[x, y]);
 
-                                colorMap[y * width + x] = color;
+                                if (biomeHighlight[(int)biome])
+                                {
+                                    Color color = biomeGradient[(int)biome].Evaluate(0) * heightColor.Evaluate(heightMap[x, y]);
+
+                                    colorMap[y * width + x] = color;
+                                }
+                                else
+                                    colorMap[y * width + x] = heightColor.Evaluate(heightMap[x, y]);
+                            } else
+                            {
+                                MagicBiome biome = GetMagicBiome(humidMap[x, y], tempMap[x, y]);
+
+                                if (biomeHighlight[(int)biome + 9])
+                                {
+                                    Color color = magicBiomeGradient[(int)biome].Evaluate(0) * heightColor.Evaluate(heightMap[x, y]);
+
+                                    colorMap[y * width + x] = color;
+                                }
+                                else
+                                    colorMap[y * width + x] = heightColor.Evaluate(heightMap[x, y]);
                             }
-                            else
-                                colorMap[y * width + x] = heightColor.Evaluate(heightMap[x, y]);
                         }
                     }
                 }
@@ -119,12 +160,51 @@ public class MapRenderer : MonoBehaviour
         }
     }
 
+    public void DrawNoiseMap(float[,] heightMap)
+    {
+        int width = heightMap.GetLength(0);
+        int height = heightMap.GetLength(1);
+
+        Texture2D texture = new Texture2D(width, height);
+
+
+        Color[] colorMap = new Color[width * height];
+
+
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                colorMap[y * width + x] = heightColor.Evaluate(heightMap[x, y]);
+            }
+        }
+
+
+        texture.SetPixels(colorMap);
+        texture.Apply();
+        texture.filterMode = FilterMode.Point;
+
+
+        if (map != null)
+        {
+            map.texture = texture;
+        }
+    }
+
 
     Biome GetBiome(float humidity, float temperature) {
-        int hum = (int)(5 * humidity + 0.9f);
-        int temp = (int)(5 * temperature + 0.9f);
+        int hum = Mathf.RoundToInt(5 * humidity);
+        int temp = Mathf.RoundToInt(5 * temperature);
         
         return BiomeTable[hum, temp];
+    }
+
+    MagicBiome GetMagicBiome(float humidity, float temperature)
+    {
+        int hum = Mathf.RoundToInt(5 * humidity);
+        int temp = Mathf.RoundToInt(5 * temperature);
+
+        return MagicBiomeTable[hum, temp];
     }
 }
 
@@ -133,6 +213,7 @@ public enum TypeOfMap
     Height,
     Humidity,
     Temperature,
+    Magic,
     Biome
 }
 
@@ -140,12 +221,22 @@ public enum Biome
 {
     Desert,
     Savanna,
-    TropicalRainforest,
     Plains,
     Forest,
     SeasonalForest,
-    TemperateRainforest,
+    Jungle,
     Taiga,
     Tundra,
     Ice
+}
+
+public enum MagicBiome
+{
+    Lavalands,
+    FireCanyon,
+    FaePlains,
+    SpiritForest,
+    FaeForest,
+    FaeTundra,
+    DarkIce
 }
