@@ -28,9 +28,6 @@ public class PlayerMovement : MonoBehaviour
 
 
     [Header("Gliding"), Space(10)]
-
-    [SerializeField] Vector3 glideVector;
-
     [SerializeField] float maxGlidingAcceleration_H;
     [SerializeField] float maxGlidingAcceleration_V;
     [SerializeField] float maxGlideHorizontal;
@@ -112,7 +109,7 @@ public class PlayerMovement : MonoBehaviour
                         glider.SetActive(isGliding);
                     }
 
-                    if (Input.GetKey(KeyCode.LeftShift) && (Input.GetAxisRaw("Horizontal") != 0 || Input.GetAxisRaw("Vertical") != 0) && rollHoldTimer == 25)
+                    if (Input.GetKey(KeyCode.LeftShift) && (Input.GetAxisRaw("Horizontal") != 0 || Input.GetAxisRaw("Vertical") != 0))
                         isRunning = true;
                     else
                         isRunning = false;
@@ -128,10 +125,10 @@ public class PlayerMovement : MonoBehaviour
 
                     if (staminaRecoveryTimer >= 100)
                     {
-                        RestoreStamina(100/5 * Time.deltaTime);
+                        RestoreStamina(100/4 * Time.deltaTime);
                     }
                     else {
-                        staminaRecoveryTimer += 100/2 * Time.deltaTime;
+                        staminaRecoveryTimer += 100 * 2 * Time.deltaTime;
 
                         staminaRecoveryTimer =  Mathf.Clamp(staminaRecoveryTimer, 0, 100);
                     }
@@ -186,11 +183,11 @@ public class PlayerMovement : MonoBehaviour
 
         if (Input.GetKey(KeyCode.Space) && currentStamina > 0 && !(Input.GetAxisRaw("Vertical") < 0))
         {
-            updraftMagnitude += 18.75f * Time.deltaTime;
-            SpendStamina(9 * Time.deltaTime);
+            updraftMagnitude += 75f * Time.deltaTime;
+            SpendStamina(15 * Time.deltaTime * (updraftMagnitude /100));
         }
         else
-            updraftMagnitude -= 50 * Time.deltaTime;
+            updraftMagnitude -= 33f * Time.deltaTime;
 
         updraftMagnitude = Mathf.Clamp(updraftMagnitude, 0, 100);
 
@@ -225,7 +222,7 @@ public class PlayerMovement : MonoBehaviour
             desiredVelocity = transform.forward * maxSpeed * (isRunning && currentStamina > 0 ? runSpeedMod : 1);
 
             if (isRunning && currentStamina > 0)
-                SpendStamina(20 * Time.deltaTime);
+                SpendStamina(100/3 * Time.deltaTime);
 
         }
 
@@ -243,7 +240,6 @@ public class PlayerMovement : MonoBehaviour
 
             rollHoldTimer = 0;
         }
-
 
         float maxSpeedChange = maxAcceleration * (isRunning ? runSpeedMod : 1) * Time.deltaTime;
 
@@ -264,11 +260,11 @@ public class PlayerMovement : MonoBehaviour
     }
 
     void Roll() {
-        velocity = transform.forward * 25;
+        velocity = transform.forward * 17.5f;
+
+        SpendStamina(25f);
 
         rollTimer = 25;
-
-        SpendStamina(25);
     }
 
     void Jump() {

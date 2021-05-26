@@ -10,6 +10,7 @@ public class PlayerUI : MonoBehaviour
     [SerializeField] Image staminaBarBack;
     [SerializeField] PlayerMovement pm;
     [SerializeField] TextMeshProUGUI[] playerStats;
+    [SerializeField] TextMeshProUGUI fps;
 
     // Start is called before the first frame update
     void Start()
@@ -38,5 +39,6 @@ public class PlayerUI : MonoBehaviour
         playerStats[1].text = "Vertical Speed: " + pm.Velocity.y.ToString(".0#");
         playerStats[2].text = "Stamina: " + (int)pm.CurrentStamina + "/" + (int)pm.MaxStamina;
         playerStats[3].text = "Move State: " + pm.Move_State.ToString();
+        fps.text = "FPS: " + (1/Time.deltaTime).ToString();
     }
 }

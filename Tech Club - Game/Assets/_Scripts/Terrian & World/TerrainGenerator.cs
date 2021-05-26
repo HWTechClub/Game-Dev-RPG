@@ -4,12 +4,20 @@ using UnityEngine;
 
 public class TerrainGenerator : MonoBehaviour
 {
-    [SerializeField] int worldChunks = 10;
+
+    [SerializeField] World world;
+
+    [Space (20)]
+    
     [SerializeField] int initialChunks = 10;
 
     [SerializeField] const float maxViewDst = 63;
     [SerializeField] Transform viewer;
     [SerializeField] int chunksVisibleInViewDst;
+
+    [SerializeField] int maxChunkCount;
+    
+    [SerializeField] Vector3Int furthest = Vector3Int.zero;
 
     [Space (20)]
 
@@ -85,73 +93,77 @@ public class TerrainGenerator : MonoBehaviour
     private void Start()
     {
         GenerateOffset();
-        GenerateTerrainMap();
         GenerateTerrain();
-        GenerateMap(Vector2.zero);
-    }
-
-    private void GenerateTerrainMap() {
-        float start = Time.realtimeSinceStartup;
-
-        if (scale < 0f)
-            scale = 0.01f;
-
-        WorldHeightMap = new Dictionary<Vector2, float>();
-
-        int worldWidthHalf = ((MarchingCubesData.chunkWidth + 1) * worldChunks)/2;
-
-        for (int x = -worldWidthHalf; x < worldWidthHalf; x++)
-        {
-            for (int z = -worldWidthHalf; z < worldWidthHalf; z++)
-            {
-                float thisHeight = Noise.GetTerrainHeight(x, z, heightOffsets, octaves, persistance, lacunarity, scale);
-
-                WorldHeightMap.Add(new Vector2(x, z), thisHeight);
-
-            }
-        }
-
-        print(Time.realtimeSinceStartup - start);
+        //GenerateMap(Vector2.zero);
     }
 
     private void Update()
     {
-        
         UpdateVisibleChunks();
 
-        GenerateMap(new Vector2((int)viewer.position.x, (int)viewer.position.z));
-
+        //GenerateMap(new Vector2((int)viewer.position.x, (int)viewer.position.z));
     }
 
     void UpdateVisibleChunks ()
     {
+        maxChunkCount = (int) (Mathf.PI * Mathf.Pow(chunksVisibleInViewDst, 2));
+
         int currentChunkCoordX = Mathf.RoundToInt(viewer.position.x - viewer.position.x % MarchingCubesData.chunkWidth);
         int currentChunkCoordZ = Mathf.RoundToInt(viewer.position.z - viewer.position.z % MarchingCubesData.chunkWidth);
-        
+
+        bool createChunk = false;
+        Vector3Int chunkToCreate = furthest;
+
+        foreach (KeyValuePair<Vector3Int, Chunk> entry in chunks) {
+            if ((Mathf.Pow(currentChunkCoordX - entry.Value.position.x, 2) + Mathf.Pow(currentChunkCoordZ - entry.Value.position.z, 2)) > (Mathf.Pow(currentChunkCoordX - furthest.x, 2) + Mathf.Pow(currentChunkCoordZ - furthest.z, 2)))
+            {
+                furthest = Vector3Int.CeilToInt(entry.Value.position);
+            }
+        }
+
         //BIG WIP
         for (int zOffset = -chunksVisibleInViewDst; zOffset <= chunksVisibleInViewDst; zOffset++)
         {
             for (int xOffset = -chunksVisibleInViewDst; xOffset <= chunksVisibleInViewDst; xOffset++)
             {
                 Vector3Int viewedChunkCOord = new Vector3Int(currentChunkCoordX + xOffset * MarchingCubesData.chunkWidth, 0, currentChunkCoordZ + zOffset * MarchingCubesData.chunkWidth);
-
-
-
+                
                 if (chunks.ContainsKey(viewedChunkCOord))
                 {
                     //Chunk already exists.
                 }
                 else
                 {
-                    //Create new chunk/ TO DO: instead of creating a new chunk, take the furthest chunk and change it.
+                    //Create new chunk/
+                    if ((Mathf.Pow(currentChunkCoordX - viewedChunkCOord.x, 2) + Mathf.Pow(currentChunkCoordZ - viewedChunkCOord.z, 2)) < (Mathf.Pow(currentChunkCoordX - chunkToCreate.x, 2) + Mathf.Pow(currentChunkCoordZ - chunkToCreate.z, 2)))
+                    {
+                        chunkToCreate = viewedChunkCOord;
+                        createChunk = true;
 
-                    CreateNewChunks(viewedChunkCOord);
-                    return;
+                    }
+
                 }
 
             }
         }
 
+
+        if (createChunk) {
+
+            if (chunks.Count >= maxChunkCount)
+            {
+                //Reuse old chunk
+                Vector3Int oldPosition = furthest;
+                
+                ReuseChunk(oldPosition, chunkToCreate);
+
+                furthest = new Vector3Int(currentChunkCoordX, 0, currentChunkCoordZ);
+
+                return;
+            }
+
+            CreateNewChunks(chunkToCreate);
+        }
     }
 
     //Generates the terrain
@@ -164,7 +176,7 @@ public class TerrainGenerator : MonoBehaviour
             for (int z = 0; z < initialChunks; z++)
             {
                 Vector3Int chunkPos = new Vector3Int(x * MarchingCubesData.chunkWidth, 0, z * MarchingCubesData.chunkWidth);
-                chunks.Add(chunkPos, new Chunk(chunkPos, heightOffsets, octaves, persistance, lacunarity, scale, this));
+                chunks.Add(chunkPos, new Chunk(new TerrainGenData( chunkPos, heightOffsets, octaves, persistance, lacunarity, scale, this)));
                 chunks[chunkPos].chunkObject.transform.SetParent(transform);
             }
         }
@@ -179,7 +191,7 @@ public class TerrainGenerator : MonoBehaviour
             for (int z = 0; z < mapWidth; z++)
             {
                 float value = 0;
-                WorldHeightMap.TryGetValue(new Vector2((x - mapWidth / 2) * 10 + position.x, (z - mapWidth / 2) * 10 + position.y), out value);
+                //world.WorldHeightMap.TryGetValue(new Vector2((x - mapWidth / 2) * 10 + position.x, (z - mapWidth / 2) * 10 + position.y), out value);
 
                 heightMap[x, z] = value;
             }
@@ -190,9 +202,24 @@ public class TerrainGenerator : MonoBehaviour
 
     public void CreateNewChunks(Vector3Int position) {
         Vector3Int chunkPos = new Vector3Int(position.x, 0,position.z);
-        chunks.Add(chunkPos, new Chunk(chunkPos, heightOffsets, octaves, persistance, lacunarity, scale, this));
+        chunks.Add(chunkPos, new Chunk(new TerrainGenData(chunkPos, heightOffsets, octaves, persistance, lacunarity, scale, this)));
         chunks[chunkPos].chunkObject.transform.SetParent(transform);
     }
 
-    public Dictionary<Vector2,float> WorldHeightMap { get; private set; }
+    public Vector2[] HeightOffest {
+        get {
+            return heightOffsets;
+        }
+    }
+
+    private void ReuseChunk(Vector3Int oldPosition, Vector3Int newPosition) {
+
+        Vector3Int chunkPos = newPosition;
+        Chunk chunk = chunks[oldPosition];
+        chunks.Remove(oldPosition);
+
+        chunk.UpdateChunk(new TerrainGenData(chunkPos, heightOffsets, octaves, persistance, lacunarity, scale, this));
+
+        chunks.Add(newPosition, chunk);
+    }
 }

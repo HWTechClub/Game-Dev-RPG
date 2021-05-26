@@ -6,7 +6,7 @@ public static class Noise
 {
 
     //This creates a terrain height at a given location using Perlin noise.
-    public static float GetTerrainHeight(int x, int z, Vector2[] octaveOffsets, int octaves, float persistance, float lacunarity, float scale)
+    public static float GetTerrainHeight(float x, float z, Vector2[] octaveOffsets, int octaves, float persistance, float lacunarity, float scale)
     {
         float perlinValue = 0;
 
@@ -22,10 +22,16 @@ public static class Noise
             frequency *= lacunarity;    //This modifies the scale of the next octave
         }
 
-        perlinValue = Mathf.InverseLerp(0, 1, perlinValue);
-        perlinValue = Mathf.Clamp(perlinValue, 0.5f, 1);
+        //perlinValue = Mathf.InverseLerp(0, 1, perlinValue);
+        //perlinValue = Mathf.Clamp(perlinValue, 0.4f, 1);
 
         return (float)(perlinValue);
+    }
+
+    //Noise based on No Man's Sky's Uber Noise. Source: https://www.youtube.com/watch?v=C9RyEiEzMiU&list=WL&index=36
+    //WIP
+    public static float UberNoise() {
+        return 0;
     }
 
     //Generates a noise map based on given parameters
